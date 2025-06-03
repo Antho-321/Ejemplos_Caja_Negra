@@ -12,10 +12,6 @@ def step_given_api_key(context, api_key):
 
 @when('pido el APOD de la fecha "{fecha}"')
 def step_when_request_apod(context, fecha):
-    """
-    Hacemos un GET al endpoint, enviando los parámetros "date" y "api_key".
-    Guardamos la respuesta en context.http_response y el JSON en context.json_data.
-    """
     params = {
         "date": fecha,
         "api_key": context.api_key
@@ -35,26 +31,17 @@ def step_when_request_apod(context, fecha):
 
 @then('la respuesta debe ser JSON con los campos esperados para APOD')
 def step_then_validate_json(context):
-    """
-    - Verificamos que el status code sea 200
-    - Verificamos que response.json() sea un dict
-    - Verificamos que cada uno de los campos listados en la tabla exista en el dict
-    """
-    # 1) Status code 200 (OK)
     assert context.http_response.status_code == 200, \
         f"Esperaba código 200, pero obtuve {context.http_response.status_code}"
 
-    # 2) Debe parsear JSON a un diccionario
     assert isinstance(context.json_data, dict), \
         f"Respuesta no fue JSON válido: {context.http_response.text}"
 
-    # 3) Campos requeridos
     for row in context.table:
         campo = row['campo']
         assert campo in context.json_data, \
             f"Falta el campo '{campo}' en la respuesta JSON.\nJSON completo: {context.json_data}"
 
-    # 4) Opcional: verificar tipos básicos de datos
     date_val = context.json_data.get("date")
     assert isinstance(date_val, str) and len(date_val) == 10 and date_val.count("-") == 2, \
         f"Campo 'date' no tiene formato YYYY-MM-DD: {date_val}"
